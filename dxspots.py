@@ -16,20 +16,28 @@ from matplotlib.ticker import AutoMinorLocator
 
 from scipy.interpolate import make_interp_spline
 
-BUCKET_SIZE = 2
+DETECT_TYPES = sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
 
-bucket = lambda x: int(BUCKET_SIZE * int(x.hour / BUCKET_SIZE))
+def adapt_datetime(t_stamp):
+  return t_stamp.timestamp()
 
-def read_data(dbname):
+def convert_datetime(t_stamp):
+  try:
+    return datetime.fromtimestamp(float(t_stamp))
+  except ValueError:
+    return None
+
+sqlite3.register_adapter(datetime, adapt_datetime)
+sqlite3.register_converter('timestamp', convert_datetime)
+
+def read_data(dbname, bucket_size=3):
   logger.info('Reading data from: %s', dbname)
-  conn = sqlite3.connect(dbname, timeout=3)
+  bucket = lambda x: int(bucket_size * int(x.hour / bucket_size))
+  conn = sqlite3.connect(dbname, timeout=3, detect_types=DETECT_TYPES)
   data = {}
-  result = conn.execute('select * from dxspot')
+  result = conn.execute('select * from dxspot where cont_de != ""')
   for row in result:
-    if row[4] == '':
-      continue
-    _date = datetime.fromtimestamp(row[7])
-    date = _date.replace(hour=bucket(_date), minute=0, second=0, microsecond=0)
+    date = row[7].replace(hour=bucket(row[7]), minute=0, second=0, microsecond=0)
     if date not in data:
       data[date] = defaultdict(int)
     data[date][row[4]] += 1
@@ -45,7 +53,7 @@ def graph(data, target_dir):
   logger.info('Generating graph file: %s', graphname)
 
   labels = np.array([d[0].timestamp() for d in data])
-  xdata = np.linspace(labels.min(), labels.max(), 1500)
+  xdata = np.linspace(labels.min(), labels.max(), len(labels) * 10)
 
   for ctn in keys:
     ydata = np.array([d[1][ctn] for d in data])
