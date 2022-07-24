@@ -16,7 +16,7 @@ from matplotlib.ticker import AutoMinorLocator
 
 from scipy.interpolate import make_interp_spline
 
-DETECT_TYPES = sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
+DETECT_TYPES = sqlite3.PARSE_DECLTYPES
 
 def adapt_datetime(t_stamp):
   return t_stamp.timestamp()
