@@ -45,7 +45,8 @@ def read_data(dbname, bucket_size=3):
   return sorted(data.items())
 
 
-def graph(data, target_dir):
+def graph(data, target_dir, smooth_factor=5):
+  assert smooth_factor % 2 != 0, 'smooth_factor should be an odd number'
   graphname = os.path.join(target_dir, 'dxcc-stats.svg')
   keys = ['EU', 'AS', 'OC', 'NA', 'SA', 'AF']
   continents = {}
@@ -57,7 +58,7 @@ def graph(data, target_dir):
 
   for ctn in keys:
     ydata = np.array([d[1][ctn] for d in data])
-    spl = make_interp_spline(labels, ydata, k=5)
+    spl = make_interp_spline(labels, ydata, k=smooth_factor)
     ydata = spl(xdata)
     ydata[ydata < 0] = 0
     continents[ctn] = ydata
@@ -94,9 +95,16 @@ def main():
   parser.add_argument("--target-dir", default='/tmp',
                       help="Where to copy the graph")
   parser.add_argument("--database", required=True, help="Sqlite3 database path")
+  parser.add_argument('-b', '--bucket', type=int, default=3,
+                      help='Time bucket')
+  parser.add_argument('-s', '--smooth', type=int, default=5,
+                      help='Graph smoothing factor')
   opts = parser.parse_args()
-  data = read_data(opts.database)
-  graph(data, opts.target_dir)
+  if opts.smooth % 2 == 0:
+    parser.error('The smoothing factor should be an odd number')
+
+  data = read_data(opts.database, opts.bucket)
+  graph(data, opts.target_dir, opts.smooth)
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO)
