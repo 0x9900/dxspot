@@ -35,12 +35,12 @@ def read_data(dbname, bucket_size=3):
   bucket = lambda x: int(bucket_size * int(x.hour / bucket_size))
   conn = sqlite3.connect(dbname, timeout=3, detect_types=DETECT_TYPES)
   data = {}
-  result = conn.execute('select * from dxspot where cont_de != ""')
+  result = conn.execute('select de_cont, time from dxspot where de_cont != ""')
   for row in result:
-    date = row[7].replace(hour=bucket(row[7]), minute=0, second=0, microsecond=0)
+    date = row[1].replace(hour=bucket(row[1]), minute=0, second=0, microsecond=0)
     if date not in data:
       data[date] = defaultdict(int)
-    data[date][row[4]] += 1
+    data[date][row[0]] += 1
 
   return sorted(data.items())
 

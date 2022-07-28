@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+# Emacs
+\#*\#
+.\#*
+*~
+
 # Distribution / packaging
 .Python
 build/
@@ -127,3 +132,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Misc
+nohup.out
