@@ -45,9 +45,9 @@ def read_data(dbname, bucket_size=3):
   return sorted(data.items())
 
 
-def graph(data, target_dir, smooth_factor=5):
+def graph(data, target_dir, filename, smooth_factor=5):
   assert smooth_factor % 2 != 0, 'smooth_factor should be an odd number'
-  graphname = os.path.join(target_dir, 'dxcc-stats.svg')
+  graphname = os.path.join(target_dir, filename)
   keys = ['EU', 'AS', 'OC', 'NA', 'SA', 'AF']
   continents = {}
 
@@ -91,20 +91,22 @@ def graph(data, target_dir, smooth_factor=5):
 
 
 def main():
-  parser = argparse.ArgumentParser(description='Graph dxcc trafic')
-  parser.add_argument("--target-dir", default='/tmp',
+  parser = argparse.ArgumentParser(description="Graph dxcc trafic")
+  parser.add_argument("--target-dir", default="/tmp",
                       help="Where to copy the graph")
+  parser.add_argument("-f", "--filename", default="dxcc-stats.svg",
+                      help="Graph ile name")
   parser.add_argument("--database", required=True, help="Sqlite3 database path")
-  parser.add_argument('-b', '--bucket', type=int, default=3,
-                      help='Time bucket')
-  parser.add_argument('-s', '--smooth', type=int, default=5,
-                      help='Graph smoothing factor')
+  parser.add_argument("-b", "--bucket", type=int, default=3,
+                      help="Time bucket")
+  parser.add_argument("-s", "--smooth", type=int, default=5,
+                      help="Graph smoothing factor")
   opts = parser.parse_args()
   if opts.smooth % 2 == 0:
-    parser.error('The smoothing factor should be an odd number')
+    parser.error("The smoothing factor should be an odd number")
 
   data = read_data(opts.database, opts.bucket)
-  graph(data, opts.target_dir, opts.smooth)
+  graph(data, opts.target_dir, opts.filename, opts.smooth)
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.INFO)
