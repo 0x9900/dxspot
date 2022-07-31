@@ -68,7 +68,7 @@ def graph(data, target_dir, filename, smooth_factor=5):
   xdata = np.array([datetime.fromtimestamp(d) for d in xdata])
   labels = np.array([datetime.fromtimestamp(d) for d in labels])
 
-  formatter = DateFormatter('%Y-%m-%d')
+  formatter = DateFormatter('%Y-%m-%d %H:%M')
   plt.title('DX Spots / Continent', fontsize=18)
 
   for key in keys:
