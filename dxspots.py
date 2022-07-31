@@ -11,7 +11,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 
-from matplotlib.dates import DateFormatter, HourLocator
+from matplotlib.dates import DateFormatter, DayLocator
 from matplotlib.ticker import AutoMinorLocator
 
 from scipy.interpolate import make_interp_spline
@@ -79,11 +79,9 @@ def graph(data, target_dir, filename, smooth_factor=5):
 
   axgc.xaxis.set_major_formatter(formatter)
   axgc.xaxis.set_tick_params(rotation=10, labelsize=10)
-  axgc.xaxis.set_minor_locator(HourLocator())
-  axgc.xaxis.set_minor_locator(AutoMinorLocator(6))
-  axgc.set_xlabel('Dates (UTC)')
+  axgc.xaxis.set_minor_locator(DayLocator())
+  axgc.xaxis.set_minor_locator(AutoMinorLocator(8))
   axgc.set_ylabel('Numer of spots')
-
   axgc.grid(True)
 
   plt.legend(fontsize=10, facecolor='white')
@@ -92,15 +90,16 @@ def graph(data, target_dir, filename, smooth_factor=5):
 
 def main():
   parser = argparse.ArgumentParser(description="Graph dxcc trafic")
-  parser.add_argument("--target-dir", default="/tmp",
-                      help="Where to copy the graph")
-  parser.add_argument("-f", "--filename", default="dxcc-stats.svg",
-                      help="Graph ile name")
-  parser.add_argument("--database", required=True, help="Sqlite3 database path")
   parser.add_argument("-b", "--bucket", type=int, default=3,
                       help="Time bucket")
+  parser.add_argument("-d", "--database", required=True,
+                      help="Sqlite3 database path")
+  parser.add_argument("-f", "--filename", default="dxcc-stats.svg",
+                      help="Graph ile name")
   parser.add_argument("-s", "--smooth", type=int, default=5,
                       help="Graph smoothing factor")
+  parser.add_argument("-t", "--target-dir", default="/tmp",
+                      help="Where to copy the graph")
   opts = parser.parse_args()
   if opts.smooth % 2 == 0:
     parser.error("The smoothing factor should be an odd number")
