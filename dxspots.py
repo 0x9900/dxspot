@@ -68,7 +68,7 @@ def graph(data, target_dir, filename, smooth_factor=5):
   xdata = np.array([datetime.fromtimestamp(d) for d in xdata])
   labels = np.array([datetime.fromtimestamp(d) for d in labels])
 
-  formatter = DateFormatter('%Y-%m-%d %H:%M')
+  formatter = DateFormatter('%Y-%m-%d')
   plt.title('DX Spots / Continent', fontsize=18)
 
   for key in keys:
@@ -79,7 +79,7 @@ def graph(data, target_dir, filename, smooth_factor=5):
 
   axgc.xaxis.set_major_formatter(formatter)
   axgc.xaxis.set_major_locator(DayLocator())
-  axgc.xaxis.set_minor_locator(HourLocator(interval=6))
+  axgc.xaxis.set_minor_locator(HourLocator(interval=4))
   axgc.set_ylabel('Numer of spots')
   axgc.grid(color="gray", linestyle="dotted", linewidth=.75)
 
