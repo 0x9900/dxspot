@@ -11,7 +11,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 
-from matplotlib.dates import DateFormatter, DayLocator
+from matplotlib.dates import DateFormatter, DayLocator, HourLocator
 
 from scipy.interpolate import make_interp_spline
 
@@ -78,8 +78,8 @@ def graph(data, target_dir, filename, smooth_factor=5):
   plt.plot(xdata, total, linewidth=.5, label='Total', color='gray')
 
   axgc.xaxis.set_major_formatter(formatter)
-  axgc.xaxis.set_major_locator(DayLocator(2))
-  axgc.xaxis.set_minor_locator(DayLocator())
+  axgc.xaxis.set_major_locator(DayLocator())
+  axgc.xaxis.set_minor_locator(HourLocator(interval=6))
   axgc.set_ylabel('Numer of spots')
   axgc.grid(color="gray", linestyle="dotted", linewidth=.75)
 
