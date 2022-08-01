@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from matplotlib.dates import DateFormatter, DayLocator
-from matplotlib.ticker import AutoMinorLocator
 
 from scipy.interpolate import make_interp_spline
 
@@ -80,7 +79,6 @@ def graph(data, target_dir, filename, smooth_factor=5):
   axgc.xaxis.set_major_formatter(formatter)
   axgc.xaxis.set_tick_params(rotation=10, labelsize=10)
   axgc.xaxis.set_minor_locator(DayLocator())
-  axgc.xaxis.set_minor_locator(AutoMinorLocator(8))
   axgc.set_ylabel('Numer of spots')
   axgc.grid(True)
 
