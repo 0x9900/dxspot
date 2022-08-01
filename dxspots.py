@@ -62,7 +62,8 @@ def graph(data, target_dir, filename, smooth_factor=5):
     ydata[ydata < 0] = 0
     continents[ctn] = ydata
 
-  _, axgc = plt.subplots(figsize=(12, 5))
+  fig, axgc = plt.subplots(figsize=(12, 5))
+  axgc.tick_params(labelsize=10)
 
   xdata = np.array([datetime.fromtimestamp(d) for d in xdata])
   labels = np.array([datetime.fromtimestamp(d) for d in labels])
@@ -77,11 +78,12 @@ def graph(data, target_dir, filename, smooth_factor=5):
   plt.plot(xdata, total, linewidth=.5, label='Total', color='gray')
 
   axgc.xaxis.set_major_formatter(formatter)
-  axgc.xaxis.set_tick_params(rotation=10, labelsize=10)
+  axgc.xaxis.set_major_locator(DayLocator(4))
   axgc.xaxis.set_minor_locator(DayLocator())
   axgc.set_ylabel('Numer of spots')
-  axgc.grid(True)
+  axgc.grid(color="gray", linestyle="dotted", linewidth=.75)
 
+  fig.autofmt_xdate(rotation=10, ha="center")
   plt.legend(fontsize=10, facecolor='white')
   plt.savefig(graphname, transparent=False, dpi=72)
 
