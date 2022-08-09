@@ -11,7 +11,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 
-from matplotlib.dates import DateFormatter, DayLocator, HourLocator
+from matplotlib.dates import DateFormatter, DayLocator, HourLocator, date2num
 
 from scipy.interpolate import make_interp_spline
 
@@ -34,7 +34,7 @@ def read_data(dbname, bucket_size=3):
   bucket = lambda x: int(bucket_size * int(x.hour / bucket_size))
   conn = sqlite3.connect(dbname, timeout=3, detect_types=DETECT_TYPES)
   data = {}
-  result = conn.execute('select de_cont, time from dxspot where de_cont != ""')
+  result = conn.execute('select de_cont, time from dxspot')
   for row in result:
     date = row[1].replace(hour=bucket(row[1]), minute=0, second=0, microsecond=0)
     if date not in data:
@@ -77,6 +77,18 @@ def graph(data, target_dir, filename, smooth_factor=5):
 
   total = np.sum(np.array(list(continents.values())), axis=0)
   plt.plot(xdata, total, linewidth=.5, label='Total', color='gray')
+
+  weekend_days = set([])
+  for time in labels:
+    day = time.date()
+    if day in weekend_days or day.isoweekday() not in (6, 7):
+      continue
+    weekend_days.add(day)
+
+  for day in weekend_days:
+    end = datetime(day.year, day.month, day.day, 23, 58)
+    axgc.axvspan(date2num(day), date2num(end), color="skyblue", alpha=0.5)
+
 
   axgc.xaxis.set_major_formatter(formatter)
   axgc.xaxis.set_major_locator(DayLocator())
