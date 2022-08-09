@@ -32,7 +32,7 @@ sqlite3.register_converter('timestamp', convert_datetime)
 def read_data(dbname, bucket_size=3):
   logger.info('Reading data from: %s', dbname)
   bucket = lambda x: int(bucket_size * int(x.hour / bucket_size))
-  start_date = datetime.utcnow().date() - timedelta(days=10)
+  start_date = datetime.utcnow() - timedelta(days=10)
   conn = sqlite3.connect(dbname, timeout=3, detect_types=DETECT_TYPES)
   data = {}
   result = conn.execute('select de_cont, time from dxspot where time >= ?', (start_date,))
