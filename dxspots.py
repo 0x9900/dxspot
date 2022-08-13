@@ -37,7 +37,7 @@ def read_data(dbname, bucket_size=3):
   logger.info('Reading data from: %s', dbname)
   conn = sqlite3.connect(dbname, timeout=3, detect_types=DETECT_TYPES)
 
-  result = conn.execute('select de_cont, time from dxspot where time >= ?', (start_date,))
+  result = conn.execute('SELECT de_cont, time FROM dxspot WHERE time >= ?', (start_date,))
   for row in result:
     date = row[1].replace(hour=bucket(row[1]), minute=0, second=0, microsecond=0)
     if date not in data:
