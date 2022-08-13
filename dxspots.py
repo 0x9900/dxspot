@@ -1,5 +1,7 @@
 #!/usr/bin/env python3.9
 
+__version__ = "0.1.1"
+
 import argparse
 import logging
 import os
