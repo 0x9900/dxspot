@@ -107,6 +107,10 @@ def graph(data, target_dir, filename, smooth_factor=5):
 
 
 def main():
+  global logger
+  logging.basicConfig(level=logging.INFO)
+  logger = logging.getLogger(__name__)
+
   parser = argparse.ArgumentParser(description="Graph dxcc trafic")
   parser.add_argument("-b", "--bucket", type=int, default=3,
                       help="Time bucket")
@@ -126,6 +130,4 @@ def main():
   graph(data, opts.target_dir, opts.filename, opts.smooth)
 
 if __name__ == '__main__':
-  logging.basicConfig(level=logging.INFO)
-  logger = logging.getLogger(__name__)
   main()
