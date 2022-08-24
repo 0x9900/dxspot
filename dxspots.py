@@ -77,7 +77,7 @@ def graph(data, target_dir, filename, smooth_factor=5):
 
   formatter = DateFormatter('%Y-%m-%d')
   plt.title('DX Spots / Continent', fontsize=18)
-  fig.text(0.01, 0.02, f'SunFluxBot By W6BSD {today}')
+  fig.text(0.01, 0.02, f'SunFluxBot By W6BSD {now}')
 
   for key in keys:
     plt.plot(xdata, continents[key], linewidth=1.5, label=key)
