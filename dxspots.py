@@ -100,7 +100,7 @@ def graph(data, target_dir, filename, smooth_factor=5):
   axgc.xaxis.set_major_formatter(formatter)
   axgc.xaxis.set_major_locator(DayLocator())
   axgc.xaxis.set_minor_locator(HourLocator(interval=2))
-  axgc.set_ylabel('Numer of spots')
+  axgc.set_ylabel('Number of spots / hour')
   axgc.grid(color="gray", linestyle="dotted", linewidth=.75)
 
   fig.autofmt_xdate(rotation=10, ha="center")
