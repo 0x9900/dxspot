@@ -33,7 +33,7 @@ sqlite3.register_converter('timestamp', convert_datetime)
 
 def read_data(dbname, bucket_size=3):
   bucket = lambda x: int(bucket_size * int(x.hour / bucket_size))
-  start_date = datetime.utcnow().replace(hour=0, minute=0, second=0) - timedelta(days=10)
+  start_date = datetime.utcnow().replace(hour=0, minute=0, second=0) - timedelta(days=14)
   data = {}
 
   logger.info('Reading data from: %s', dbname)
