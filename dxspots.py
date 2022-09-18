@@ -96,7 +96,6 @@ def graph(data, target_dir, filename, smooth_factor=5):
     end = datetime(day.year, day.month, day.day, 23, 58)
     axgc.axvspan(date2num(day), date2num(end), color="skyblue", alpha=0.5)
 
-
   axgc.xaxis.set_major_formatter(formatter)
   axgc.xaxis.set_major_locator(DayLocator(interval=2))
   axgc.xaxis.set_minor_locator(HourLocator(interval=4))
@@ -111,7 +110,7 @@ def graph(data, target_dir, filename, smooth_factor=5):
 def main():
   global logger
   logging.basicConfig(level=logging.INFO)
-  logger = logging.getLogger(__name__)
+  logger = logging.getLogger('dxspot')
 
   parser = argparse.ArgumentParser(description="Graph dxcc trafic")
   parser.add_argument("-b", "--bucket", type=int, default=3,
