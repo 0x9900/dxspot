@@ -31,21 +31,23 @@ def convert_datetime(t_stamp):
 sqlite3.register_adapter(datetime, adapt_datetime)
 sqlite3.register_converter('timestamp', convert_datetime)
 
-def read_data(dbname, bucket_size=3):
+def read_data(dbname, bucket_size):
   bucket = lambda x: int(bucket_size * int(x.hour / bucket_size))
   start_date = datetime.utcnow().replace(hour=0, minute=0, second=0) - timedelta(days=14)
   data = {}
 
   logger.info('Reading data from: %s', dbname)
   conn = sqlite3.connect(dbname, timeout=3, detect_types=DETECT_TYPES)
-
-  result = conn.execute('SELECT de_cont, time FROM dxspot WHERE time >= ?', (start_date,))
-  for row in result:
-    date = row[1].replace(hour=bucket(row[1]), minute=0, second=0, microsecond=0)
+  sql = ("SELECT de_cont, strftime('%Y-%m-%d %H', datetime(time, 'unixepoch')) as tm, "
+         "count(*) FROM dxspot WHERE time >= ? group by tm, de_cont;")
+  result = conn.execute(sql, (start_date,))
+  for cnt, row in enumerate(result):
+    date = datetime.strptime(row[1], '%Y-%m-%d %H')
+    date = date.replace(hour=bucket(date), minute=0, second=0, microsecond=0)
     if date not in data:
       data[date] = defaultdict(int)
-    data[date][row[0]] += 1
-
+    data[date][row[0]] += row[2]
+  logger.info('Records read: %d, data-size: %d', cnt, len(data))
   return sorted(data.items())
 
 
@@ -109,7 +111,8 @@ def graph(data, target_dir, filename, smooth_factor=5):
 
 def main():
   global logger
-  logging.basicConfig(level=logging.INFO)
+  logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s %(message)s',
+                      datefmt="%H:%M:%S", level=logging.INFO)
   logger = logging.getLogger('dxspot')
 
   parser = argparse.ArgumentParser(description="Graph dxcc trafic")
@@ -127,6 +130,7 @@ def main():
   if opts.smooth % 2 == 0:
     parser.error("The smoothing factor should be an odd number")
 
+  logger.info('Starting: --smooth=%d --bucket=%d', opts.smooth, opts.bucket)
   data = read_data(opts.database, opts.bucket)
   graph(data, opts.target_dir, opts.filename, opts.smooth)
 
