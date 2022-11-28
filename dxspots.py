@@ -1,6 +1,13 @@
-#!/usr/bin/env python3.9
+#!/usr/bin/env python3
+#
+# BSD 3-Clause License
+#
+# Copyright (c) 2022 Fred W6BSD
+# All rights reserved.
+#
+#
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 import argparse
 import logging
@@ -40,6 +47,7 @@ def read_data(dbname, bucket_size):
   conn = sqlite3.connect(dbname, timeout=3, detect_types=DETECT_TYPES)
   sql = ("SELECT de_cont, strftime('%Y-%m-%d %H', datetime(time, 'unixepoch')) as tm, "
          "count(*) FROM dxspot WHERE time >= ? group by tm, de_cont;")
+  record_cnt = 0
   result = conn.execute(sql, (start_date,))
   for cnt, row in enumerate(result):
     date = datetime.strptime(row[1], '%Y-%m-%d %H')
@@ -47,11 +55,12 @@ def read_data(dbname, bucket_size):
     if date not in data:
       data[date] = defaultdict(int)
     data[date][row[0]] += row[2]
-  logger.info('Records read: %d, data-size: %d', cnt, len(data))
+    record_cnt = cnt
+  logger.info('Records read: %d, data-size: %d', record_cnt, len(data))
   return sorted(data.items())
 
 
-def graph(data, target_dir, filename, smooth_factor=5):
+def graph(data, target_dir, filename, smooth_factor=5, show_total=False):
   # pylint: disable=too-many-locals
   assert smooth_factor % 2 != 0, 'smooth_factor should be an odd number'
   graphname = os.path.join(target_dir, filename)
@@ -84,8 +93,9 @@ def graph(data, target_dir, filename, smooth_factor=5):
   for key in keys:
     plt.plot(xdata, continents[key], linewidth=1.5, label=key)
 
-  total = np.sum(np.array(list(continents.values())), axis=0)
-  plt.plot(xdata, total, linewidth=.5, label='Total', color='gray')
+  if show_total:
+    total = np.sum(np.array(list(continents.values())), axis=0)
+    plt.plot(xdata, total, linewidth=.5, label='Total', color='gray')
 
   weekend_days = set([])
   for time in labels:
@@ -126,13 +136,15 @@ def main():
                       help="Graph smoothing factor")
   parser.add_argument("-t", "--target-dir", default="/tmp",
                       help="Where to copy the graph")
+  parser.add_argument("-T", "--show_total", action="store_true", default=False,
+                      help="Show the total number of sports")
   opts = parser.parse_args()
   if opts.smooth % 2 == 0:
     parser.error("The smoothing factor should be an odd number")
 
   logger.info('Starting: --smooth=%d --bucket=%d', opts.smooth, opts.bucket)
   data = read_data(opts.database, opts.bucket)
-  graph(data, opts.target_dir, opts.filename, opts.smooth)
+  graph(data, opts.target_dir, opts.filename, opts.smooth, opts.show_total)
 
 if __name__ == '__main__':
   main()
