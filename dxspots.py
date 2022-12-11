@@ -24,6 +24,8 @@ from matplotlib.dates import DateFormatter, DayLocator, HourLocator, date2num
 
 from scipy.interpolate import make_interp_spline
 
+plt.style.use(['classic', 'tableau-colorblind10'])
+
 DETECT_TYPES = sqlite3.PARSE_DECLTYPES
 
 def adapt_datetime(t_stamp):
@@ -38,9 +40,9 @@ def convert_datetime(t_stamp):
 sqlite3.register_adapter(datetime, adapt_datetime)
 sqlite3.register_converter('timestamp', convert_datetime)
 
-def read_data(dbname, bucket_size):
+def read_data(dbname, bucket_size, days=14):
   bucket = lambda x: int(bucket_size * int(x.hour / bucket_size))
-  start_date = datetime.utcnow().replace(hour=0, minute=0, second=0) - timedelta(days=14)
+  start_date = datetime.utcnow().replace(hour=0, minute=0, second=0) - timedelta(days=days)
   data = {}
 
   logger.info('Reading data from: %s', dbname)
@@ -87,7 +89,7 @@ def graph(data, target_dir, filename, smooth_factor=5, show_total=False):
   labels = np.array([datetime.fromtimestamp(d) for d in labels])
 
   formatter = DateFormatter('%Y-%m-%d')
-  plt.title('DX Spots / Continent', fontsize=18)
+  plt.title('DX Spots / Continent', fontsize=16)
   fig.text(0.01, 0.02, f'SunFluxBot By W6BSD {now}')
 
   for key in keys:
@@ -130,6 +132,8 @@ def main():
                       help="Time bucket")
   parser.add_argument("-d", "--database", required=True,
                       help="Sqlite3 database path")
+  parser.add_argument("-D", "--days", type=int, default=14,
+                      help="Number of days to graph [default %(default)d]")
   parser.add_argument("-f", "--filename", default="dxcc-stats.svg",
                       help="Graph ile name")
   parser.add_argument("-s", "--smooth", type=int, default=5,
@@ -142,8 +146,8 @@ def main():
   if opts.smooth % 2 == 0:
     parser.error("The smoothing factor should be an odd number")
 
-  logger.info('Starting: --smooth=%d --bucket=%d', opts.smooth, opts.bucket)
-  data = read_data(opts.database, opts.bucket)
+  logger.info('Starting: --smooth=%d --bucket=%d --days=%d', opts.smooth, opts.bucket, opts.days)
+  data = read_data(opts.database, opts.bucket, opts.days)
   graph(data, opts.target_dir, opts.filename, opts.smooth, opts.show_total)
 
 if __name__ == '__main__':
