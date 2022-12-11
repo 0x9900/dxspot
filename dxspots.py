@@ -107,7 +107,7 @@ def graph(data, target_dir, filename, smooth_factor=5, show_total=False):
     weekend_days.add(day)
 
   for day in weekend_days:
-    end = datetime(day.year, day.month, day.day, 23, 58)
+    end = datetime(day.year, day.month, day.day, 23, 59)
     axgc.axvspan(date2num(day), date2num(end), color="skyblue", alpha=0.5)
 
   axgc.xaxis.set_major_formatter(formatter)
