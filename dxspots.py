@@ -117,7 +117,7 @@ def graph(data, target_dir, filename, smooth_factor=5, show_total=False):
   axgc.grid(color="gray", linestyle="dotted", linewidth=.75)
 
   fig.autofmt_xdate(rotation=10, ha="center")
-  plt.legend(loc='upper left' fontsize=10, facecolor='white')
+  plt.legend(loc='upper left', fontsize=10, facecolor='white')
   plt.savefig(graphname, transparent=False, dpi=72)
 
 
