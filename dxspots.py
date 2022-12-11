@@ -88,7 +88,6 @@ def graph(data, target_dir, filename, smooth_factor=5, show_total=False):
   xdata = np.array([datetime.fromtimestamp(d) for d in xdata])
   labels = np.array([datetime.fromtimestamp(d) for d in labels])
 
-  formatter = DateFormatter('%Y-%m-%d')
   plt.title('DX Spots / Continent', fontsize=16)
   fig.text(0.01, 0.02, f'SunFluxBot By W6BSD {now}')
 
@@ -110,11 +109,12 @@ def graph(data, target_dir, filename, smooth_factor=5, show_total=False):
     end = datetime(day.year, day.month, day.day, 23, 59)
     axgc.axvspan(date2num(day), date2num(end), color="skyblue", alpha=0.5)
 
-  axgc.xaxis.set_major_formatter(formatter)
-  axgc.xaxis.set_major_locator(DayLocator(interval=2))
-  axgc.xaxis.set_minor_locator(HourLocator(interval=4))
+  axgc.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
+  axgc.xaxis.set_major_locator(DayLocator())
+  axgc.xaxis.set_minor_locator(HourLocator(byhour=range(0,24,6)))
+
   axgc.set_ylabel('Number of spots / hour')
-  axgc.grid(color="gray", linestyle="dotted", linewidth=.75)
+  axgc.grid(color="gray", linestyle="dotted", linewidth=.5)
 
   fig.autofmt_xdate(rotation=10, ha="center")
   plt.legend(loc='upper left', fontsize=10, facecolor='white')
