@@ -129,17 +129,17 @@ def main():
 
   parser = argparse.ArgumentParser(description="Graph dxcc trafic")
   parser.add_argument("-b", "--bucket", type=int, default=3,
-                      help="Time bucket")
+                      help="Time bucket [default: %(default)d]")
   parser.add_argument("-d", "--database", required=True,
                       help="Sqlite3 database path")
   parser.add_argument("-D", "--days", type=int, default=14,
-                      help="Number of days to graph [default %(default)d]")
+                      help="Number of days to graph [default: %(default)d]")
   parser.add_argument("-f", "--filename", default="dxcc-stats.svg",
-                      help="Graph ile name")
+                      help="Graph ile name [default: %(default)s]")
   parser.add_argument("-s", "--smooth", type=int, default=5,
-                      help="Graph smoothing factor")
+                      help="Graph smoothing factor [default: %(default)d]")
   parser.add_argument("-t", "--target-dir", default="/tmp",
-                      help="Where to copy the graph")
+                      help="Where to copy the graph [default: %(default)s]")
   parser.add_argument("-T", "--show_total", action="store_true", default=False,
                       help="Show the total number of sports")
   opts = parser.parse_args()
