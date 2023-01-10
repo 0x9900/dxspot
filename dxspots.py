@@ -111,7 +111,9 @@ def graph(data, target_dir, filename, smooth_factor=5, show_total=False):
 
   axgc.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
   axgc.xaxis.set_major_locator(DayLocator())
-  axgc.xaxis.set_minor_locator(HourLocator(byhour=range(0,24,6)))
+  axgc.xaxis.set_minor_locator(HourLocator(byhour=range(0, 24, 6)))
+  axgc.set_ylim(ymin=1)
+  axgc.set_yscale("log")
 
   axgc.set_ylabel('Number of spots / hour')
   axgc.grid(color="gray", linestyle="dotted", linewidth=.5)
