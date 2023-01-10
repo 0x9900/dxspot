@@ -88,7 +88,7 @@ def graph(data, target_dir, filename, smooth_factor=5, show_total=False):
   xdata = np.array([datetime.fromtimestamp(d) for d in xdata])
   labels = np.array([datetime.fromtimestamp(d) for d in labels])
 
-  plt.title('DX Spots / Continent', fontsize=16)
+  plt.title('Band Activity between continents', fontsize=16)
   fig.text(0.01, 0.02, f'SunFluxBot By W6BSD {now}')
 
   for key in keys:
@@ -115,7 +115,7 @@ def graph(data, target_dir, filename, smooth_factor=5, show_total=False):
   axgc.set_ylim(ymin=1)
   axgc.set_yscale("log")
 
-  axgc.set_ylabel('Number of spots / hour')
+  axgc.set_ylabel('Spots / hour')
   axgc.grid(color="gray", linestyle="dotted", linewidth=.5)
 
   fig.autofmt_xdate(rotation=10, ha="center")
