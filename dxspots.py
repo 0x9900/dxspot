@@ -99,18 +99,22 @@ def graph(data, target_dir, filename, smooth_factor=5, show_total=False):
     plt.plot(xdata, total, linewidth=.5, label='Total', color='gray')
 
   weekend_days = set([])
-  for time in labels:
-    day = time.date()
+  for _time in labels:
+    day = _time.date()
     if day in weekend_days or day.isoweekday() not in (6, 7):
       continue
     weekend_days.add(day)
+  weekend_days = list(weekend_days)
+  weekend_days.sort()
 
   for day in weekend_days:
     end = datetime(day.year, day.month, day.day, 23, 59)
+    if labels[-1] < end:
+      end = labels[-1]
     axgc.axvspan(date2num(day), date2num(end), color="skyblue", alpha=0.5)
 
   axgc.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
-  axgc.xaxis.set_major_locator(DayLocator())
+  axgc.xaxis.set_major_locator(DayLocator(interval=2))
   axgc.xaxis.set_minor_locator(HourLocator(byhour=range(0, 24, 6)))
   axgc.set_ylim(ymin=1)
   # axgc.set_yscale("log")
