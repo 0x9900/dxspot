@@ -68,7 +68,7 @@ def graph(data, target_dir, filename, smooth_factor=5, show_total=False):
   graphname = os.path.join(target_dir, filename)
   keys = ['EU', 'AS', 'OC', 'NA', 'SA', 'AF']
   continents = {}
-  now = datetime.utcnow().strftime('%Y/%m/%d %H:%M')
+  now = datetime.utcnow().strftime('%Y/%m/%d %H:%M UTC')
 
   logger.info('Generating graph file: %s', graphname)
 
