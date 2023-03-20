@@ -88,7 +88,7 @@ def graph(data, target_dir, filename, smooth_factor=5, show_total=False):
   xdata = np.array([datetime.fromtimestamp(d) for d in xdata])
   labels = np.array([datetime.fromtimestamp(d) for d in labels])
 
-  fig.suptitle('Band Activity between continents', fontsize=14, fontweight='bold')
+  fig.suptitle('Band Activity for each continent', fontsize=14, fontweight='bold')
   fig.text(0.01, 0.02, f'SunFluxBot By W6BSD {now}')
 
   for key in keys:
