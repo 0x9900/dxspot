@@ -92,7 +92,7 @@ def graph(data, target_dir, filename, smooth_factor=5, show_total=False):
   fig.text(0.01, 0.02, f'SunFluxBot By W6BSD {now}')
 
   for key in keys:
-    plt.plot(xdata, continents[key], linewidth=1.5, label=key)
+    plt.plot(xdata, continents[key], linewidth=1.75, label=key)
 
   if show_total:
     total = np.sum(np.array(list(continents.values())), axis=0)
