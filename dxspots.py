@@ -7,29 +7,32 @@
 #
 #
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 import argparse
 import logging
 import os
 import sqlite3
-
+import warnings
 from collections import defaultdict
 from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
 import numpy as np
-
 from matplotlib.dates import DateFormatter, DayLocator, HourLocator, date2num
-
 from scipy.interpolate import make_interp_spline
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 plt.style.use(['classic', 'tableau-colorblind10'])
 
 DETECT_TYPES = sqlite3.PARSE_DECLTYPES
+LOGGER = logging.getLogger('dxspot')
+
 
 def adapt_datetime(t_stamp):
   return t_stamp.timestamp()
+
 
 def convert_datetime(t_stamp):
   try:
@@ -37,15 +40,19 @@ def convert_datetime(t_stamp):
   except ValueError:
     return None
 
+
 sqlite3.register_adapter(datetime, adapt_datetime)
 sqlite3.register_converter('timestamp', convert_datetime)
 
+
 def read_data(dbname, bucket_size, days=14):
-  bucket = lambda x: int(bucket_size * int(x.hour / bucket_size))
+  def bucket(x):
+    return int(bucket_size * int(x.hour / bucket_size))
+
   start_date = datetime.utcnow().replace(hour=0, minute=0, second=0) - timedelta(days=days)
   data = {}
 
-  logger.info('Reading data from: %s', dbname)
+  LOGGER.info('Reading data from: %s', dbname)
   conn = sqlite3.connect(dbname, timeout=3, detect_types=DETECT_TYPES)
   sql = ("SELECT de_cont, strftime('%Y-%m-%d %H', datetime(time, 'unixepoch')) as tm, "
          "count(*) FROM dxspot WHERE time >= ? group by tm, de_cont;")
@@ -58,26 +65,27 @@ def read_data(dbname, bucket_size, days=14):
       data[date] = defaultdict(int)
     data[date][row[0]] += row[2]
     record_cnt = cnt
-  logger.info('Records read: %d, data-size: %d', record_cnt, len(data))
+  LOGGER.info('Records read: %d, data-size: %d', record_cnt, len(data))
   return sorted(data.items())
 
 
-def graph(data, target_dir, filename, smooth_factor=5, show_total=False):
+def graph(data, target_dir, filenames, smooth_factor=5, show_total=False):
   # pylint: disable=too-many-locals
   assert smooth_factor % 2 != 0, 'smooth_factor should be an odd number'
-  graphname = os.path.join(target_dir, filename)
   keys = ['EU', 'AS', 'OC', 'NA', 'SA', 'AF']
   continents = {}
   now = datetime.utcnow().strftime('%Y/%m/%d %H:%M UTC')
-
-  logger.info('Generating graph file: %s', graphname)
 
   labels = np.array([d[0].timestamp() for d in data])
   xdata = np.linspace(labels.min(), labels.max(), len(labels) * 10)
 
   for ctn in keys:
     ydata = np.array([d[1][ctn] for d in data])
-    spl = make_interp_spline(labels, ydata, k=smooth_factor)
+    try:
+      spl = make_interp_spline(labels, ydata, k=smooth_factor)
+    except ValueError:
+      LOGGER.error('Not enough data for a smooth factor of: %d', smooth_factor)
+      return
     ydata = spl(xdata)
     ydata[ydata < 0] = 0
     continents[ctn] = ydata
@@ -127,14 +135,15 @@ def graph(data, target_dir, filename, smooth_factor=5, show_total=False):
   for line in legend.get_lines():
     line.set_linewidth(4.0)
 
-  plt.savefig(graphname, transparent=False, dpi=72)
+  for filename in filenames:
+    graphname = os.path.join(target_dir, filename)
+    LOGGER.info('Generating graph file: %s', graphname)
+    plt.savefig(graphname, transparent=False, dpi=100)
 
 
 def main():
-  global logger
   logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s %(message)s',
                       datefmt="%H:%M:%S", level=logging.INFO)
-  logger = logging.getLogger('dxspot')
 
   parser = argparse.ArgumentParser(description="Graph dxcc trafic")
   parser.add_argument("-b", "--bucket", type=int, default=3,
@@ -143,7 +152,7 @@ def main():
                       help="Sqlite3 database path")
   parser.add_argument("-D", "--days", type=int, default=14,
                       help="Number of days to graph [default: %(default)d]")
-  parser.add_argument("-f", "--filename", default="dxcc-stats.svg",
+  parser.add_argument("-f", "--filenames", nargs="+",
                       help="Graph ile name [default: %(default)s]")
   parser.add_argument("-s", "--smooth", type=int, default=5,
                       help="Graph smoothing factor [default: %(default)d]")
@@ -155,9 +164,10 @@ def main():
   if opts.smooth % 2 == 0:
     parser.error("The smoothing factor should be an odd number")
 
-  logger.info('Starting: --smooth=%d --bucket=%d --days=%d', opts.smooth, opts.bucket, opts.days)
+  LOGGER.info('Starting: --smooth=%d --bucket=%d --days=%d', opts.smooth, opts.bucket, opts.days)
   data = read_data(opts.database, opts.bucket, opts.days)
-  graph(data, opts.target_dir, opts.filename, opts.smooth, opts.show_total)
+  graph(data, opts.target_dir, opts.filenames, opts.smooth, opts.show_total)
+
 
 if __name__ == '__main__':
   main()

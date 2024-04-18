@@ -15,9 +15,11 @@ py_version = sys.version_info[:2]
 if py_version < (3, 5):
   raise RuntimeError('dxspots requires Python 3.5 or later')
 
+
 def readme():
   with open('README.md', encoding="utf-8") as fdr:
     return fdr.read()
+
 
 setup(
   name='dxspots',
@@ -31,7 +33,7 @@ setup(
   author_email='w6bsd@bsdworld.org',
   py_modules=['dxspots'],
   install_requires=['matplotlib', 'numpy', 'scipy'],
-  entry_points = {
+  entry_points={
     'console_scripts': ['dxspots = dxspots:main'],
   },
   classifiers=[
