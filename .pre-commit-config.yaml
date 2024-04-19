@@ -6,7 +6,9 @@ repos:
     hooks:
       - id: check-ast
       - id: trailing-whitespace
+        exclude: \.svg
       - id: end-of-file-fixer
+        exclude: \.svg
       - id: check-added-large-files
       - id: debug-statements
   - repo: https://github.com/pycqa/isort
