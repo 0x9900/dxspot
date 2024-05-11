@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.dates import DateFormatter, DayLocator, HourLocator, date2num
+from matplotlib.ticker import FuncFormatter
 from scipy.interpolate import make_interp_spline
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -43,6 +44,12 @@ def convert_datetime(t_stamp):
 
 sqlite3.register_adapter(datetime, adapt_datetime)
 sqlite3.register_converter('timestamp', convert_datetime)
+
+
+def tick_format(value, tick_number):
+  if value >= 1000:
+    value = f"{value/1000:.0f}k"
+  return value
 
 
 def read_data(dbname, bucket_size, days=14):
@@ -125,6 +132,7 @@ def graph(data, target_dir, filenames, smooth_factor=5, show_total=False):
   axgc.xaxis.set_major_locator(DayLocator(interval=2))
   axgc.xaxis.set_minor_locator(HourLocator(byhour=range(0, 24, 6)))
   axgc.set_ylim(ymin=1)
+  axgc.yaxis.set_major_formatter(FuncFormatter(tick_format))
   # axgc.set_yscale("log")
 
   axgc.set_ylabel('Spots / hour')
