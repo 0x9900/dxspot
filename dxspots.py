@@ -15,7 +15,7 @@ import os
 import sqlite3
 import warnings
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -56,7 +56,7 @@ def read_data(dbname, bucket_size, days=14):
   def bucket(x):
     return int(bucket_size * int(x.hour / bucket_size))
 
-  start_date = datetime.utcnow().replace(hour=0, minute=0, second=0) - timedelta(days=days)
+  s_date = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0) - timedelta(days=days)
   data = {}
 
   LOGGER.info('Reading data from: %s', dbname)
@@ -64,7 +64,7 @@ def read_data(dbname, bucket_size, days=14):
   sql = ("SELECT de_cont, strftime('%Y-%m-%d %H', datetime(time, 'unixepoch')) as tm, "
          "count(*) FROM dxspot WHERE time >= ? group by tm, de_cont;")
   record_cnt = 0
-  result = conn.execute(sql, (start_date,))
+  result = conn.execute(sql, (s_date,))
   for cnt, row in enumerate(result):
     date = datetime.strptime(row[1], '%Y-%m-%d %H')
     date = date.replace(hour=bucket(date), minute=0, second=0, microsecond=0)
@@ -81,7 +81,7 @@ def graph(data, target_dir, filenames, smooth_factor=5, show_total=False):
   assert smooth_factor % 2 != 0, 'smooth_factor should be an odd number'
   keys = ['EU', 'AS', 'OC', 'NA', 'SA', 'AF']
   continents = {}
-  now = datetime.utcnow().strftime('%Y/%m/%d %H:%M UTC')
+  now = datetime.now(timezone.utc).strftime('%Y/%m/%d %H:%M %Z')
 
   labels = np.array([d[0].timestamp() for d in data])
   xdata = np.linspace(labels.min(), labels.max(), len(labels) * 10)
