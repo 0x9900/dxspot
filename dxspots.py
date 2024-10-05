@@ -187,11 +187,9 @@ def main():
                       help="Sqlite3 database path")
   parser.add_argument("-D", "--days", type=int, default=14,
                       help="Number of days to graph [default: %(default)d]")
-  parser.add_argument("--target_dir", type=pathlib.Path, default='/tmp',
-                      help="Graph ile name [default: %(default)s]")
   parser.add_argument("-s", "--smooth", type=int, default=5,
                       help="Graph smoothing factor [default: %(default)d]")
-  parser.add_argument("-t", "--target-dir", default="/tmp",
+  parser.add_argument("-t", "--target-dir", default="/tmp", type=pathlib.Path,
                       help="Where to copy the graph [default: %(default)s]")
   parser.add_argument("-T", "--show_total", action="store_true", default=False,
                       help="Show the total number of sports")
