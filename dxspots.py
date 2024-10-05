@@ -12,6 +12,7 @@ __version__ = "0.1.3"
 import argparse
 import logging
 import os
+import pathlib
 import sqlite3
 import warnings
 from collections import defaultdict
@@ -25,10 +26,16 @@ from scipy.interpolate import make_interp_spline
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-plt.style.use(['classic', 'tableau-colorblind10'])
 
 DETECT_TYPES = sqlite3.PARSE_DECLTYPES
 LOGGER = logging.getLogger('dxspot')
+
+EXTENTIONS = ('.svgz', '.png')
+
+STYLES = {
+  'light': pathlib.Path.home().joinpath('.local', 'light.mplstyle'),
+  'dark': pathlib.Path.home().joinpath('.local', 'dark.mplstyle'),
+}
 
 
 def adapt_datetime(t_stamp):
@@ -46,7 +53,7 @@ sqlite3.register_adapter(datetime, adapt_datetime)
 sqlite3.register_converter('timestamp', convert_datetime)
 
 
-def tick_format(value, tick_number):
+def tick_format(value, _):
   if value >= 1000:
     value = f"{value/1000:.0f}k"
   return value
@@ -76,12 +83,11 @@ def read_data(dbname, bucket_size, days=14):
   return sorted(data.items())
 
 
-def graph(data, target_dir, filenames, smooth_factor=5, show_total=False):
+def graph(data, filename, smooth_factor=5, show_total=False):
   # pylint: disable=too-many-locals
   assert smooth_factor % 2 != 0, 'smooth_factor should be an odd number'
   keys = ['EU', 'AS', 'OC', 'NA', 'SA', 'AF']
   continents = {}
-  now = datetime.now(timezone.utc).strftime('%Y/%m/%d %H:%M %Z')
 
   labels = np.array([d[0].timestamp() for d in data])
   xdata = np.linspace(labels.min(), labels.max(), len(labels) * 10)
@@ -104,7 +110,6 @@ def graph(data, target_dir, filenames, smooth_factor=5, show_total=False):
   labels = np.array([datetime.fromtimestamp(d) for d in labels])
 
   fig.suptitle('Band Activity for each continent', fontsize=14, fontweight='bold')
-  fig.text(0.01, 0.02, f'SunFluxBot By W6BSD {now}')
 
   for key in keys:
     plt.plot(xdata, continents[key], linewidth=1.75, label=key)
@@ -126,27 +131,49 @@ def graph(data, target_dir, filenames, smooth_factor=5, show_total=False):
     end = datetime(day.year, day.month, day.day, 23, 59)
     if labels[-1] < end:
       end = labels[-1]
-    axgc.axvspan(date2num(day), date2num(end), color="skyblue", alpha=0.5)
+    axgc.axvspan(date2num(day), date2num(end), alpha=0.1)
 
   axgc.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
-  axgc.xaxis.set_major_locator(DayLocator(interval=2))
-  axgc.xaxis.set_minor_locator(HourLocator(byhour=range(0, 24, 6)))
+  axgc.xaxis.set_major_locator(DayLocator(interval=1))
+  axgc.xaxis.set_minor_locator(HourLocator(byhour=range(0, 24, 4)))
   axgc.set_ylim(ymin=1)
   axgc.yaxis.set_major_formatter(FuncFormatter(tick_format))
   # axgc.set_yscale("log")
 
   axgc.set_ylabel('Spots / hour')
-  axgc.grid(color="gray", linestyle="dotted", linewidth=.5)
 
   fig.autofmt_xdate(rotation=10, ha="center")
-  legend = plt.legend(loc='upper left', fontsize=10, facecolor='white')
+  legend = plt.legend(loc='upper left')
   for line in legend.get_lines():
     line.set_linewidth(4.0)
 
-  for filename in filenames:
-    graphname = os.path.join(target_dir, filename)
-    LOGGER.info('Generating graph file: %s', graphname)
-    plt.savefig(graphname, transparent=False, dpi=100)
+  save_plot(plt, filename)
+
+
+def save_plot(plot, filename):
+  fig = plot.gcf()
+  today = datetime.now(timezone.utc).strftime('%Y')
+  fig.text(0.01, 0.02, f'\xa9 W6BSD {today} https://bsdworld.org/', fontsize=8, style='italic')
+  if not filename.parent.exists():
+    LOGGER.error('[Errno 2] No such file or directory: %s', filename.parent)
+    return
+  for ext in EXTENTIONS:
+    fname = filename.with_suffix(ext)
+    try:
+      plot.savefig(fname, transparent=False, dpi=100)
+      LOGGER.info('Graph "%s" saved', fname)
+    except (FileNotFoundError, ValueError) as err:
+      LOGGER.error(err)
+
+
+def mk_link(src, dst):
+  for ext in EXTENTIONS:
+    src_img = src.with_suffix(ext)
+    dst_img = dst.with_suffix(ext)
+    if dst_img.exists():
+      dst_img.unlink()
+    os.link(src_img, dst_img)
+    LOGGER.info('Link %s ->  %s', src_img, dst_img)
 
 
 def main():
@@ -160,7 +187,7 @@ def main():
                       help="Sqlite3 database path")
   parser.add_argument("-D", "--days", type=int, default=14,
                       help="Number of days to graph [default: %(default)d]")
-  parser.add_argument("-f", "--filenames", nargs="+",
+  parser.add_argument("--target_dir", type=pathlib.Path, default='/tmp',
                       help="Graph ile name [default: %(default)s]")
   parser.add_argument("-s", "--smooth", type=int, default=5,
                       help="Graph smoothing factor [default: %(default)d]")
@@ -174,7 +201,12 @@ def main():
 
   LOGGER.info('Starting: --smooth=%d --bucket=%d --days=%d', opts.smooth, opts.bucket, opts.days)
   data = read_data(opts.database, opts.bucket, opts.days)
-  graph(data, opts.target_dir, opts.filenames, opts.smooth, opts.show_total)
+  for name, style in STYLES.items():
+    with plt.style.context(style):
+      filename = opts.target_dir.joinpath(f'dxspots-{opts.days:d}-{name}')
+      graph(data, filename, opts.smooth, opts.show_total)
+      if name == 'light':
+        mk_link(filename, opts.target_dir.joinpath(f'dxspots-{opts.days:d}'))
 
 
 if __name__ == '__main__':
