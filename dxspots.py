@@ -205,7 +205,6 @@ def main():
       graph(data, filename, opts.smooth, opts.show_total)
       if name == 'light':
         mk_link(filename, opts.target_dir.joinpath(f'dxspots-{opts.days:d}'))
-        mk_link(filename, opts.target_dir.joinpath('dxcc-stats'))
 
 
 if __name__ == '__main__':
